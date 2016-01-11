@@ -14,6 +14,7 @@ import (
 	"os/user"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/bgentry/speakeasy"
@@ -33,8 +34,8 @@ type regulation struct {
 }
 
 type schedule struct {
-	TimeBegin string     `json:"datetime_begin"`
-	TimeEnd   string     `json:"datetime_end"`
+	TimeBegin time.Time  `json:"datetime_begin"`
+	TimeEnd   time.Time  `json:"datetime_end"`
 	Stages    regulation `json:"stages"`
 	GachiRule string     `json:"gachi_rule"`
 }
@@ -228,6 +229,35 @@ func getAccount(r io.Reader) (string, string, error) {
 	return username, password, err
 }
 
+func (s schedule) String() string {
+	timefmt := "01/02 15:04:05"
+	str := fmt.Sprintf("%s - %s\n",
+		s.TimeBegin.Format(timefmt), s.TimeEnd.Format(timefmt))
+
+	str += "レギュラーマッチ\n"
+	for i, stage := range s.Stages.Regular {
+		if i == 0 {
+			str += "\t"
+		} else {
+			str += ", "
+		}
+		str += stage.Name
+	}
+	str += "\n"
+
+	str += fmt.Sprintf("ガチマッチ (%s)\n", s.GachiRule)
+	for i, stage := range s.Stages.Gachi {
+		if i == 0 {
+			str += "\t"
+		} else {
+			str += ", "
+		}
+		str += stage.Name
+	}
+	str += "\n"
+	return str
+}
+
 func main() {
 	client, err := createClient()
 	if err != nil {
@@ -266,5 +296,7 @@ func main() {
 		return
 	}
 
-	fmt.Println(info)
+	for _, s := range info.Schedules {
+		fmt.Printf("%v\n", s)
+	}
 }
