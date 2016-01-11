@@ -9,6 +9,8 @@ getting stage schedules
 $ ikaring
 ```
 
+![ScreenShot](img/screenshot.png)
+
 ## Install
 
 ```
