@@ -49,7 +49,6 @@ const (
 	splatoonCookieName = "_wag_session"
 	splatoonDomainURL  = "https://splatoon.nintendo.net/"
 
-	splatoonClientID = "12af3d0a3a1f441eb900411bb50a835a"
 	splatoonOauthURL = "https://splatoon.nintendo.net/users/auth/nintendo"
 	nintendoOauthURL = "https://id.nintendo.net/oauth/authorize"
 
@@ -101,7 +100,7 @@ func getOauthQuery(oarthURL string, id string, password string) (url.Values, err
 
 		// parse from docment
 		switch name {
-		case "cliend_id":
+		case "client_id":
 			if v, ok := s.Attr("value"); ok {
 				query.Add(name, v)
 			}
@@ -121,7 +120,6 @@ func getOauthQuery(oarthURL string, id string, password string) (url.Values, err
 	})
 
 	// fixed value
-	query.Add("client_id", splatoonClientID)
 	query.Add("nintendo_authenticate", "")
 	query.Add("nintendo_authorize", "")
 	query.Add("scope", "")
