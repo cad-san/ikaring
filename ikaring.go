@@ -1,16 +1,23 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
+	"os"
+	"os/user"
+	"path/filepath"
+	"strings"
 
 	"github.com/PuerkitoBio/goquery"
-	simplejson "github.com/bitly/go-simplejson"
+	"github.com/bgentry/speakeasy"
+	"github.com/bitly/go-simplejson"
 )
 
 type ikaClient http.Client
@@ -38,6 +45,9 @@ type stageInfo struct {
 }
 
 const (
+	splatoonCookieName = "_wag_session"
+	splatoonDomainURL  = "https://splatoon.nintendo.net/"
+
 	splatoonClientID = "12af3d0a3a1f441eb900411bb50a835a"
 	splatoonOauthURL = "https://splatoon.nintendo.net/users/auth/nintendo"
 	nintendoOauthURL = "https://id.nintendo.net/oauth/authorize"
@@ -63,6 +73,15 @@ func decodeJSONSchedule(data []byte) (*stageInfo, error) {
 		return nil, err
 	}
 	return info, nil
+}
+
+func getSessionFromCookie(resp *http.Response) string {
+	for _, cookie := range resp.Cookies() {
+		if cookie.Name == "_wag_session" {
+			return cookie.Value
+		}
+	}
+	return ""
 }
 
 func getOauthQuery(oarthURL string, id string, password string) (url.Values, error) {
@@ -123,23 +142,36 @@ func createClient() (*ikaClient, error) {
 	return (*ikaClient)(client), nil
 }
 
-func (c *ikaClient) login(name string, password string) error {
+func (c *ikaClient) setSession(session string) {
+	uri, _ := url.Parse(splatoonDomainURL)
+	(*http.Client)(c).Jar.SetCookies(uri, []*http.Cookie{
+		&http.Cookie{
+			Secure:   true,
+			HttpOnly: true,
+			Name:     splatoonCookieName,
+			Value:    session,
+		}})
+}
+
+func (c *ikaClient) login(name string, password string) (string, error) {
 	query, err := getOauthQuery(splatoonOauthURL, name, password)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	resp, err := (*http.Client)(c).PostForm(nintendoOauthURL, query)
 	if err != nil {
-		return err
+		return "", err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		return errors.New(resp.Status)
+		return "", errors.New(resp.Status)
 	}
 
-	return nil
+	session := getSessionFromCookie(resp)
+
+	return session, nil
 }
 
 func (c *ikaClient) getStageInfo() (*stageInfo, error) {
@@ -151,12 +183,88 @@ func (c *ikaClient) getStageInfo() (*stageInfo, error) {
 	}
 	defer resp.Body.Close()
 
-	return decodeJSONSchedule(resp.Body)
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = checkJSONError(body); err != nil {
+		return nil, err
+	}
+
+	return decodeJSONSchedule(body)
+}
+
+func getCacheFile() (string, error) {
+	me, err := user.Current()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(me.HomeDir, ".ikaring.session"), nil
+}
+
+func readSession(path string) (string, error) {
+	buff, err := ioutil.ReadFile(path)
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(string(buff)), nil
+}
+
+func writeSession(path string, session string) error {
+	return ioutil.WriteFile(path, []byte(session), 600)
+}
+
+func getAccount(r io.Reader) (string, string, error) {
+	scanner := bufio.NewScanner(r)
+	for {
+		fmt.Print("User: ")
+		if scanner.Scan() {
+			break
+		}
+	}
+	username := scanner.Text()
+	password, err := speakeasy.Ask("Password: ")
+	return username, password, err
 }
 
 func main() {
-	_, err := createClient()
+	client, err := createClient()
 	if err != nil {
 		fmt.Println(err)
+		return
 	}
+
+	path, err := getCacheFile()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	session, err := readSession(path)
+	if err == nil && len(session) > 0 {
+		client.setSession(session)
+	} else {
+		username, password, err := getAccount(os.Stdin)
+		session, err = client.login(username, password)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+	}
+
+	if len(session) <= 0 {
+		fmt.Println("ログインできませんでした")
+		return
+	}
+
+	writeSession(path, session)
+
+	info, err := client.getStageInfo()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	fmt.Println(info)
 }
