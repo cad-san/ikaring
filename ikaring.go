@@ -21,7 +21,9 @@ import (
 	"github.com/bitly/go-simplejson"
 )
 
-type ikaClient http.Client
+type ikaClient struct {
+	http.Client
+}
 
 type stage struct {
 	Name  string `json:"name"`
@@ -137,13 +139,14 @@ func createClient() (*ikaClient, error) {
 	if err != nil {
 		return nil, err
 	}
-	client := &http.Client{Jar: jar}
-	return (*ikaClient)(client), nil
+	client := &ikaClient{}
+	client.Jar = jar
+	return client, nil
 }
 
 func (c *ikaClient) setSession(session string) {
 	uri, _ := url.Parse(splatoonDomainURL)
-	(*http.Client)(c).Jar.SetCookies(uri, []*http.Cookie{
+	c.Jar.SetCookies(uri, []*http.Cookie{
 		&http.Cookie{
 			Secure:   true,
 			HttpOnly: true,
@@ -158,7 +161,7 @@ func (c *ikaClient) login(name string, password string) (string, error) {
 		return "", err
 	}
 
-	resp, err := (*http.Client)(c).PostForm(nintendoOauthURL, query)
+	resp, err := c.PostForm(nintendoOauthURL, query)
 	if err != nil {
 		return "", err
 	}
@@ -175,7 +178,7 @@ func (c *ikaClient) login(name string, password string) (string, error) {
 
 func (c *ikaClient) getStageInfo() (*stageInfo, error) {
 
-	resp, err := (*http.Client)(c).Get(splatoonScheduleAPI)
+	resp, err := c.Get(splatoonScheduleAPI)
 
 	if err != nil {
 		return nil, err
