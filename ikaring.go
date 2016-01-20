@@ -54,7 +54,7 @@ const (
 	splatoonOauthURL = "https://splatoon.nintendo.net/users/auth/nintendo"
 	nintendoOauthURL = "https://id.nintendo.net/oauth/authorize"
 
-	splatoonScheduleAPI = "https://splatoon.nintendo.net/schedule/index.json"
+	splatoonScheduleAPI = "https://splatoon.nintendo.net/schedule.json"
 )
 
 func checkJSONError(data []byte) error {
