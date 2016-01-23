@@ -14,7 +14,7 @@ $ ikaring
 ## Install
 
 ```
-go get github.com/cad-san/ikaring
+go get github.com/cad-san/ikaring/cmd/ikaring
 ```
 
 ## License
