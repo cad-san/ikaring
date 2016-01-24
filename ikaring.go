@@ -62,7 +62,7 @@ func (c *ikaClient) Login(name string, password string) (string, error) {
 	return session, nil
 }
 
-func (c *ikaClient) GetStageInfo() (*stageInfo, error) {
+func (c *ikaClient) GetStageInfo() (*StageInfo, error) {
 
 	resp, err := c.Get(splatoonScheduleAPI)
 

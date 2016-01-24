@@ -86,7 +86,15 @@ func main() {
 		return
 	}
 
-	for _, s := range info.Schedules {
-		fmt.Printf("%v\n", s)
+	if info.FesSchedules != nil {
+		for _, s := range *info.FesSchedules {
+			fmt.Printf("%v\n", s)
+		}
+	}
+
+	if info.Schedules != nil {
+		for _, s := range *info.Schedules {
+			fmt.Printf("%v\n", s)
+		}
 	}
 }

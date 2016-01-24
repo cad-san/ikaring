@@ -11,37 +11,66 @@ type ikaClient struct {
 	http.Client
 }
 
-type stage struct {
+type Stage struct {
 	Name  string `json:"name"`
 	Image string `json:"asset_path"`
 }
 
-type regulation struct {
-	Regular []stage
-	Gachi   []stage
+type Regulation struct {
+	Regular []Stage
+	Gachi   []Stage
 }
 
-type schedule struct {
+type Schedule struct {
 	TimeBegin time.Time  `json:"datetime_begin"`
 	TimeEnd   time.Time  `json:"datetime_end"`
-	Stages    regulation `json:"stages"`
+	Stages    Regulation `json:"stages"`
 	GachiRule string     `json:"gachi_rule"`
 }
 
-type stageInfo struct {
-	Festival  bool       `json:"festival"`
-	Schedules []schedule `json:"schedule"`
+type Festival struct {
+	TimeBegin time.Time `json:"datetime_begin"`
+	TimeEnd   time.Time `json:"datetime_end"`
+	TeamA     string    `json:"team_alpha_name"`
+	TeamB     string    `json:"team_bravo_name"`
+	Stages    []Stage   `json:"stages"`
 }
 
-func decodeJSONSchedule(data []byte) (*stageInfo, error) {
-	info := &stageInfo{}
-	if err := json.Unmarshal(data, info); err != nil {
+type StageInfo struct {
+	Festival     bool
+	Schedules    *[]Schedule
+	FesSchedules *[]Festival
+}
+
+type stageJSON struct {
+	Festival  bool            `json:"festival"`
+	Schedules json.RawMessage `json:"schedule"`
+}
+
+func decodeJSONSchedule(data []byte) (*StageInfo, error) {
+	i := &StageInfo{}
+	p := &stageJSON{}
+
+	if err := json.Unmarshal(data, p); err != nil {
 		return nil, err
 	}
-	return info, nil
+
+	if p.Festival {
+		var fes []Festival
+		if err := json.Unmarshal(p.Schedules, &fes); err == nil {
+			i.FesSchedules = &fes
+		}
+	} else {
+		var regular []Schedule
+		if err := json.Unmarshal(p.Schedules, &regular); err == nil {
+			i.Schedules = &regular
+		}
+	}
+
+	return i, nil
 }
 
-func (s schedule) String() string {
+func (s Schedule) String() string {
 	timefmt := "01/02 15:04:05"
 	str := fmt.Sprintf("%s - %s\n",
 		s.TimeBegin.Format(timefmt), s.TimeEnd.Format(timefmt))
@@ -59,6 +88,24 @@ func (s schedule) String() string {
 
 	str += fmt.Sprintf("ガチマッチ (%s)\n", s.GachiRule)
 	for i, stage := range s.Stages.Gachi {
+		if i == 0 {
+			str += "\t"
+		} else {
+			str += ", "
+		}
+		str += stage.Name
+	}
+	str += "\n"
+	return str
+}
+
+func (s Festival) String() string {
+	timefmt := "01/02 15:04:05"
+	str := fmt.Sprintf("%s - %s\n",
+		s.TimeBegin.Format(timefmt), s.TimeEnd.Format(timefmt))
+
+	str += fmt.Sprintf("フェスマッチ [%s vs %s]\n", s.TeamA, s.TeamB)
+	for i, stage := range s.Stages {
 		if i == 0 {
 			str += "\t"
 		} else {
