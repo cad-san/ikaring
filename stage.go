@@ -3,43 +3,45 @@ package ikaring
 import (
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"time"
 )
 
-type ikaClient struct {
-	http.Client
-}
-
+// Stage has stage infomation.
 type Stage struct {
-	Name  string `json:"name"`
-	Image string `json:"asset_path"`
+	Name  string `json:"name"`       // stage name
+	Image string `json:"asset_path"` // url for stage image
 }
 
+// Regulation is buttle regulation for Regular Match & Gachi Match.
+// It includes stage set.
 type Regulation struct {
-	Regular []Stage
-	Gachi   []Stage
+	Regular []Stage // stage set for Regular Match
+	Gachi   []Stage // stage set for Gatch Match
 }
 
+// Schedule is a rule set for normal day.
+// It has time span, stage set, and gachi rule.
 type Schedule struct {
-	TimeBegin time.Time  `json:"datetime_begin"`
-	TimeEnd   time.Time  `json:"datetime_end"`
-	Stages    Regulation `json:"stages"`
-	GachiRule string     `json:"gachi_rule"`
+	TimeBegin time.Time  `json:"datetime_begin"` // Start Time
+	TimeEnd   time.Time  `json:"datetime_end"`   // End Time
+	Stages    Regulation `json:"stages"`         // Stage Set
+	GachiRule string     `json:"gachi_rule"`     // rule for Gatch Match
 }
 
+// Festival is a rule set in Festival
 type Festival struct {
-	TimeBegin time.Time `json:"datetime_begin"`
-	TimeEnd   time.Time `json:"datetime_end"`
-	TeamA     string    `json:"team_alpha_name"`
-	TeamB     string    `json:"team_bravo_name"`
-	Stages    []Stage   `json:"stages"`
+	TimeBegin time.Time `json:"datetime_begin"`  // Start Time
+	TimeEnd   time.Time `json:"datetime_end"`    // End Time
+	TeamA     string    `json:"team_alpha_name"` // Name of Team A
+	TeamB     string    `json:"team_bravo_name"` // Name of Team B
+	Stages    []Stage   `json:"stages"`          // Stage Set
 }
 
+// StageInfo is all set of Stage Schedules.
 type StageInfo struct {
-	Festival     bool
-	Schedules    *[]Schedule
-	FesSchedules *[]Festival
+	Festival     bool        // during the festival
+	Schedules    *[]Schedule // Schedule info for normal day(nil in festival)
+	FesSchedules *[]Festival // Schedule info for festival(nil in normal day)
 }
 
 type stageJSON struct {

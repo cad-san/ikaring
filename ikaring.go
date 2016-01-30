@@ -1,3 +1,6 @@
+/*
+Package ikaring provides http client Api for SplatNet; web service for Splatoon by Nintendo.
+*/
 package ikaring
 
 import (
@@ -10,6 +13,12 @@ import (
 	"github.com/bitly/go-simplejson"
 )
 
+// IkaClient is a http client for SplatNet.
+// it includes http.Client.
+type IkaClient struct {
+	http.Client
+}
+
 const (
 	splatoonCookieName = "_wag_session"
 	splatoonDomainURL  = "https://splatoon.nintendo.net/"
@@ -20,17 +29,20 @@ const (
 	splatoonScheduleAPI = "https://splatoon.nintendo.net/schedule.json"
 )
 
-func CreateClient() (*ikaClient, error) {
+// CreateClient generates ikaClient, http client object for Splatnet.
+// It provides a http client with empty cookiejar.
+func CreateClient() (*IkaClient, error) {
 	jar, err := cookiejar.New(nil)
 	if err != nil {
 		return nil, err
 	}
-	client := &ikaClient{}
+	client := &IkaClient{}
 	client.Jar = jar
 	return client, nil
 }
 
-func (c *ikaClient) SetSession(session string) {
+// SetSession sets session cookie to receiver IkaClient.
+func (c *IkaClient) SetSession(session string) {
 	uri, _ := url.Parse(splatoonDomainURL)
 	c.Jar.SetCookies(uri, []*http.Cookie{
 		&http.Cookie{
@@ -41,7 +53,9 @@ func (c *ikaClient) SetSession(session string) {
 		}})
 }
 
-func (c *ikaClient) Login(name string, password string) (string, error) {
+// Login sends http request to authorize Nintendo Network.
+// it require NNID and password and return session cookie.
+func (c *IkaClient) Login(name string, password string) (string, error) {
 	query, err := getOauthQuery(splatoonOauthURL, name, password)
 	if err != nil {
 		return "", err
@@ -62,7 +76,9 @@ func (c *ikaClient) Login(name string, password string) (string, error) {
 	return session, nil
 }
 
-func (c *ikaClient) GetStageInfo() (*StageInfo, error) {
+// GetStageInfo get Stage Info from SplatNet.
+// this API send GET request and parse stage schedules from JSON.
+func (c *IkaClient) GetStageInfo() (*StageInfo, error) {
 
 	resp, err := c.Get(splatoonScheduleAPI)
 
