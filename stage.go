@@ -57,6 +57,8 @@ func decodeJSONSchedule(data []byte) (*StageInfo, error) {
 		return nil, err
 	}
 
+	i.Festival = p.Festival
+
 	if p.Festival {
 		var fes []Festival
 		if err := json.Unmarshal(p.Schedules, &fes); err == nil {

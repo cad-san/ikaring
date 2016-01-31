@@ -60,3 +60,41 @@ func TestDecodeRegularSchedule(t *testing.T) {
 		t.Errorf("info.Schedules should not be nil")
 	}
 }
+
+func TestDecodeFestivalSchedule(t *testing.T) {
+	jsonStr := `
+    {
+        "festival":true,
+        "schedule":[
+            {
+                "datetime_begin":"2016-01-23T03:00:00.000+00:00",
+                "datetime_end":"2016-01-24T03:00:00.000+00:00",
+                "team_alpha_name":"カンペキカラダ",
+                "team_bravo_name":"カンペキ頭脳",
+                "stages":[
+                    {"asset_path":"1.png","name":"ハコフグ倉庫"},
+                    {"asset_path":"2.png","name":"ショッツル鉱山"},
+                    {"asset_path":"3.png","name":"アンチョビットゲームズ"}
+                ]
+            }
+        ]
+    }
+    `
+	info, err := decodeJSONSchedule([]byte(jsonStr))
+
+	if err != nil {
+		t.Errorf("decode JSON failed with : %v", err)
+	}
+
+	if !info.Festival {
+		t.Errorf("info.festival should be true")
+	}
+
+	if info.FesSchedules == nil {
+		t.Errorf("info.FesSchedules should not be nil")
+	}
+
+	if info.Schedules != nil {
+		t.Errorf("info.Schedules should be nil")
+	}
+}
