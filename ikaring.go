@@ -27,6 +27,7 @@ const (
 	nintendoOauthURL = "https://id.nintendo.net/oauth/authorize"
 
 	splatoonScheduleAPI = "https://splatoon.nintendo.net/schedule.json"
+	splatoonRankingAPI  = "https://splatoon.nintendo.net/ranking.json"
 )
 
 // CreateClient generates ikaClient, http client object for Splatnet.
@@ -97,6 +98,28 @@ func (c *IkaClient) GetStageInfo() (*StageInfo, error) {
 	}
 
 	return decodeJSONSchedule(body)
+}
+
+// GetRanking get Ranking of Friends from SplatNet.
+// this API send GET request and parse ranking from JSON.
+func (c *IkaClient) GetRanking() (*RankingInfo, error) {
+	resp, err := c.Get(splatoonRankingAPI)
+
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = checkJSONError(body); err != nil {
+		return nil, err
+	}
+
+	return decodeJSONRanking(body)
 }
 
 func checkJSONError(data []byte) error {
