@@ -72,9 +72,17 @@ func (c *IkaClient) Login(name string, password string) (string, error) {
 		return "", errors.New(resp.Status)
 	}
 
-	session := getSessionFromCookie(resp)
+	session := getSessionFromCookie(resp.Cookies())
 
 	return session, nil
+}
+
+// Authorized judges wheather the client authorized
+// It checks cookies for session that used for authorization
+func (c *IkaClient) Authorized() bool {
+	uri, _ := url.Parse(splatoonDomainURL)
+	session := getSessionFromCookie(c.Jar.Cookies(uri))
+	return len(session) != 0
 }
 
 // GetStageInfo get Stage Info from SplatNet.

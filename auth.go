@@ -55,8 +55,8 @@ func getOauthQuery(oarthURL string, id string, password string) (url.Values, err
 	return query, nil
 }
 
-func getSessionFromCookie(resp *http.Response) string {
-	for _, cookie := range resp.Cookies() {
+func getSessionFromCookie(cookies []*http.Cookie) string {
+	for _, cookie := range cookies {
 		if cookie.Name == "_wag_session" {
 			return cookie.Value
 		}
