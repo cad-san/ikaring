@@ -4,6 +4,7 @@ import (
 	"github.com/cad-san/ikaring"
 
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -48,42 +49,35 @@ func getAccount(r io.Reader) (string, string, error) {
 	return username, password, err
 }
 
-func main() {
-	client, err := ikaring.CreateClient()
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
+func login(client *ikaring.IkaClient) error {
 	path, err := getCacheFile()
 	if err != nil {
-		fmt.Println(err)
-		return
+		return err
 	}
 
 	session, err := readSession(path)
 	if err == nil && len(session) > 0 {
 		client.SetSession(session)
-	} else {
-		username, password, err := getAccount(os.Stdin)
-		session, err = client.Login(username, password)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
+		return nil // already authorized
+	}
+
+	username, password, err := getAccount(os.Stdin)
+	session, err = client.Login(username, password)
+	if err != nil {
+		return err
 	}
 
 	if len(session) <= 0 {
-		fmt.Println("ログインできませんでした")
-		return
+		return errors.New("login failure")
 	}
-
 	writeSession(path, session)
+	return nil
+}
 
+func stage(client *ikaring.IkaClient) error {
 	info, err := client.GetStageInfo()
 	if err != nil {
-		fmt.Println(err)
-		return
+		return err
 	}
 
 	if info.FesSchedules != nil {
@@ -96,5 +90,24 @@ func main() {
 		for _, s := range *info.Schedules {
 			fmt.Printf("%v\n", s)
 		}
+	}
+	return nil
+}
+
+func main() {
+	client, err := ikaring.CreateClient()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	if err = login(client); err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	if err = stage(client); err != nil {
+		fmt.Println(err)
+		return
 	}
 }
