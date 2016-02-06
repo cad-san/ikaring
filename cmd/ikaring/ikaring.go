@@ -94,6 +94,28 @@ func stage(client *ikaring.IkaClient) error {
 	return nil
 }
 
+func ranking(client *ikaring.IkaClient) error {
+	info, err := client.GetRanking()
+	if err != nil {
+		return err
+	}
+
+	if len(info.Regular) > 0 {
+		fmt.Println("レギュラーマッチ")
+		for _, p := range info.Regular {
+			fmt.Printf("\t[%d] %3d %s (%s)\n", p.Rank, p.Score, p.Name, p.Weapon)
+		}
+	}
+
+	if len(info.Gachi) > 0 {
+		fmt.Println("ガチマッチ")
+		for _, p := range info.Gachi {
+			fmt.Printf("\t[%d] %3d %s (%s)\n", p.Rank, p.Score, p.Name, p.Weapon)
+		}
+	}
+	return nil
+}
+
 func main() {
 	client, err := ikaring.CreateClient()
 	if err != nil {
