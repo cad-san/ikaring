@@ -10,6 +10,7 @@ import (
 	"net/http/cookiejar"
 	"net/url"
 
+	"github.com/PuerkitoBio/goquery"
 	"github.com/bitly/go-simplejson"
 )
 
@@ -128,6 +129,29 @@ func (c *IkaClient) GetRanking() (*RankingInfo, error) {
 	}
 
 	return decodeJSONRanking(body)
+}
+
+// GetWeaponMap get Weapon Set from SplatNet.
+// this API send GET request and parse weapon map by scraping HTML
+func (c *IkaClient) GetWeaponMap() (map[string]string, error) {
+	resp, err := c.Get(splatoonDomainURL)
+	if err != nil {
+		return nil, err
+	}
+
+	doc, err := goquery.NewDocumentFromResponse(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	weapons := map[string]string{}
+	doc.Find("#user_intention_weapon").Children().Each(func(_ int, s *goquery.Selection) {
+		key, ok := s.Attr("value")
+		if ok {
+			weapons[key] = s.Text()
+		}
+	})
+	return weapons, nil
 }
 
 func checkJSONError(data []byte) error {
