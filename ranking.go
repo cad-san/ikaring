@@ -45,6 +45,8 @@ func (p *PlayerScore) UnmarshalJSON(b []byte) error {
 		return err
 	}
 	p.Player = raw.Player
+	// convert from image file that formatted with {HASH_ID}-{IMAGE_ID}.png
+	p.Weapon = weapons[strings.Split(p.Weapon, "-")[0]]
 	p.Rank, err = strconv.Atoi(strings.Join(raw.Rank, ""))
 	if err != nil {
 		p.Rank = 0
