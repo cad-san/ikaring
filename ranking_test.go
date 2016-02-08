@@ -15,7 +15,8 @@ func TestDecodeRanking(t *testing.T) {
                 "score":["1","0","0"],
                 "mii_url":"https://example.com/player1.png",
                 "mii_name":"player1",
-                "weapon":"weapon1.png", "head":"head1.png", "clothes":"clothes1.png", "shoes":"shoes1.png",
+                "weapon":"c9f7cead9ee5ada35437d7c2ea8ddae6ca1dacfc6c9b01d5939cfc0ff59fe0ea-dummy.png",
+                "head":"head1.png", "clothes":"clothes1.png", "shoes":"shoes1.png",
                 "weapon2x":"weapon1.png", "head2x":"head1.png", "clothes2x":"clothes1.png","shoes2x":"shoes1.png"
             },
             {
@@ -24,7 +25,8 @@ func TestDecodeRanking(t *testing.T) {
                 "score":["2","0","0"],
                 "mii_url":"https://example.com/player2.png",
                 "mii_name":"player2",
-                "weapon":"weapon2.png", "head":"head2.png", "clothes":"clothes2.png", "shoes":"shoes2.png",
+                "weapon":"c9f7cead9ee5ada35437d7c2ea8ddae6ca1dacfc6c9b01d5939cfc0ff59fe0ea-dummy.png",
+                "head":"head2.png", "clothes":"clothes2.png", "shoes":"shoes2.png",
                 "weapon2x":"weapon2.png", "head2x":"head2.png", "clothes2x":"clothes2.png", "shoes2x":"shoes2.png"
             } ],
         "gachi":[
@@ -34,7 +36,8 @@ func TestDecodeRanking(t *testing.T) {
                 "score":["3","2","1"],
                 "mii_url":"https://example.com/player1.png",
                 "mii_name":"player1",
-                "weapon":"weapon1.png", "head":"head1.png", "clothes":"clothes1.png", "shoes":"shoes1.png",
+                "weapon":"c9f7cead9ee5ada35437d7c2ea8ddae6ca1dacfc6c9b01d5939cfc0ff59fe0ea-dummy.png",
+                "head":"head1.png", "clothes":"clothes1.png", "shoes":"shoes1.png",
                 "weapon2x":"weapon1.png", "head2x":"head1.png", "clothes2x":"clothes1.png","shoes2x":"shoes1.png"
             },
             {
@@ -43,7 +46,8 @@ func TestDecodeRanking(t *testing.T) {
                 "score":["2","1","0"],
                 "mii_url":"https://example.com/player2.png",
                 "mii_name":"player2",
-                "weapon":"weapon2.png", "head":"head2.png", "clothes":"clothes2.png", "shoes":"shoes2.png",
+                "weapon":"c9f7cead9ee5ada35437d7c2ea8ddae6ca1dacfc6c9b01d5939cfc0ff59fe0ea-dummy.png",
+                "head":"head2.png", "clothes":"clothes2.png", "shoes":"shoes2.png",
                 "weapon2x":"weapon2.png", "head2x":"head2.png", "clothes2x":"clothes2.png", "shoes2x":"shoes2.png"
             }]
     }
@@ -69,7 +73,7 @@ func TestDecodeRanking(t *testing.T) {
 		p.Name = fmt.Sprintf("player%d", i+1)
 		p.ID = fmt.Sprintf("hash_%d", i+1)
 		p.MiiURL = fmt.Sprintf("https://example.com/player%d.png", i+1)
-		p.Weapon = fmt.Sprintf("weapon%d.png", i+1)
+		p.Weapon = "わかばシューター"
 		expect = append(expect, p)
 	}
 
