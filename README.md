@@ -6,10 +6,16 @@ this is a cli client for SplatNet with golang
 getting stage schedules
 
 ```
-$ ikaring
+$ ikaring stage
 ```
 
 ![ScreenShot](img/screenshot.png)
+
+getting ranking
+
+```
+$ ikaring rank
+```
 
 ## Install
 
