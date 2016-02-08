@@ -14,7 +14,15 @@ import (
 	"strings"
 
 	"github.com/bgentry/speakeasy"
+	"github.com/jessevdk/go-flags"
 )
+
+type option struct {
+	Stage stageCmd `command:"stage" description:"display stage schedule"`
+	Rank  rankCmd  `command:"rank"  description:"display ranking with friends"`
+}
+type stageCmd struct{}
+type rankCmd struct{}
 
 func getCacheFile() (string, error) {
 	me, err := user.Current()
@@ -74,7 +82,16 @@ func login(client *ikaring.IkaClient) error {
 	return nil
 }
 
-func stage(client *ikaring.IkaClient) error {
+func (c *stageCmd) Execute(args []string) error {
+	client, err := ikaring.CreateClient()
+	if err != nil {
+		return err
+	}
+
+	if err = login(client); err != nil {
+		return err
+	}
+
 	info, err := client.GetStageInfo()
 	if err != nil {
 		return err
@@ -94,7 +111,16 @@ func stage(client *ikaring.IkaClient) error {
 	return nil
 }
 
-func ranking(client *ikaring.IkaClient) error {
+func (c *rankCmd) Execute(args []string) error {
+	client, err := ikaring.CreateClient()
+	if err != nil {
+		return err
+	}
+
+	if err = login(client); err != nil {
+		return err
+	}
+
 	info, err := client.GetRanking()
 	if err != nil {
 		return err
@@ -117,19 +143,18 @@ func ranking(client *ikaring.IkaClient) error {
 }
 
 func main() {
-	client, err := ikaring.CreateClient()
+	var opts option
+	parser := flags.NewParser(&opts, flags.Default)
+	parser.Name = "ikaring"
+	parser.SubcommandsOptional = true
+
+	_, err := parser.Parse()
+
+	if len(os.Args) == 1 {
+		parser.WriteHelp(os.Stdout)
+		return
+	}
 	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	if err = login(client); err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	if err = stage(client); err != nil {
-		fmt.Println(err)
-		return
+		os.Exit(1)
 	}
 }
