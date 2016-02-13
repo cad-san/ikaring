@@ -27,8 +27,9 @@ const (
 	splatoonOauthURL = "https://splatoon.nintendo.net/users/auth/nintendo"
 	nintendoOauthURL = "https://id.nintendo.net/oauth/authorize"
 
-	splatoonScheduleAPI = "https://splatoon.nintendo.net/schedule.json"
-	splatoonRankingAPI  = "https://splatoon.nintendo.net/ranking.json"
+	splatoonScheduleAPI   = "https://splatoon.nintendo.net/schedule.json"
+	splatoonRankingAPI    = "https://splatoon.nintendo.net/ranking.json"
+	splatoonFriendListAPI = "https://splatoon.nintendo.net/friend_list/index.json"
 )
 
 // CreateClient generates ikaClient, http client object for Splatnet.
@@ -129,6 +130,25 @@ func (c *IkaClient) GetRanking() (*RankingInfo, error) {
 	}
 
 	return decodeJSONRanking(body)
+}
+
+// GetFriendList get Friend List form SplatNet.
+// this API send GET request and parse friend online status from JSON
+func (c *IkaClient) GetFriendList() ([]Friend, error) {
+	resp, err := c.Get(splatoonFriendListAPI)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if err = checkJSONError(body); err != nil {
+		return nil, err
+	}
+	return decodeJSONFriendList(body)
 }
 
 // GetWeaponMap get Weapon Set from SplatNet.
