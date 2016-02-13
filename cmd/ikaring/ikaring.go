@@ -18,11 +18,13 @@ import (
 )
 
 type option struct {
-	Stage stageCmd `command:"stage" description:"display stage schedule"`
-	Rank  rankCmd  `command:"rank"  description:"display ranking with friends"`
+	Stage  stageCmd  `command:"stage"  description:"display stage schedule"`
+	Rank   rankCmd   `command:"rank"   description:"display ranking with friends"`
+	Friend friendCmd `command:"friend" description:"display friend list"`
 }
 type stageCmd struct{}
 type rankCmd struct{}
+type friendCmd struct{}
 
 func getCacheFile() (string, error) {
 	me, err := user.Current()
@@ -138,6 +140,32 @@ func (c *rankCmd) Execute(args []string) error {
 		for _, p := range info.Gachi {
 			fmt.Printf("\t[%d] %3d %s (%s)\n", p.Rank, p.Score, p.Name, p.Weapon)
 		}
+	}
+	return nil
+}
+
+func (c *friendCmd) Execute(args []string) error {
+	client, err := ikaring.CreateClient()
+	if err != nil {
+		return err
+	}
+
+	if err = login(client); err != nil {
+		return err
+	}
+
+	list, err := client.GetFriendList()
+	if err != nil {
+		return err
+	}
+
+	if len(list) == 0 {
+		fmt.Println("フレンドはオフラインです")
+	}
+
+	for _, f := range list {
+		fmt.Printf("%s\n", f.Name)
+		fmt.Printf("\t%s\n", f.Mode)
 	}
 	return nil
 }
