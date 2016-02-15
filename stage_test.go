@@ -2,6 +2,7 @@ package ikaring
 
 import (
 	"testing"
+	"time"
 )
 
 func TestDecodeRegularSchedule(t *testing.T) {
@@ -96,5 +97,17 @@ func TestDecodeFestivalSchedule(t *testing.T) {
 
 	if info.Schedules != nil {
 		t.Errorf("info.Schedules should be nil")
+	}
+}
+
+func TestTimeSpanStringer(t *testing.T) {
+	ts := &TimeSpan{
+		TimeBegin: time.Date(2016, 1, 1, 11, 00, 00, 00, time.Local),
+		TimeEnd:   time.Date(2016, 1, 1, 15, 00, 00, 00, time.Local),
+	}
+	expect := "01/01 11:00:00 - 01/01 15:00:00"
+	actual := ts.String()
+	if expect != actual {
+		t.Errorf("TimeSpan.String() fail\nexpect:%s\nactual:%s", expect, actual)
 	}
 }

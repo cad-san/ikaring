@@ -19,22 +19,26 @@ type Regulation struct {
 	Gachi   []Stage // stage set for Gatch Match
 }
 
+// TimeSpan is a period for Buttle regulation
+type TimeSpan struct {
+	TimeBegin time.Time `json:"datetime_begin"` // Start Time
+	TimeEnd   time.Time `json:"datetime_end"`   // End Time
+}
+
 // Schedule is a rule set for normal day.
 // It has time span, stage set, and gachi rule.
 type Schedule struct {
-	TimeBegin time.Time  `json:"datetime_begin"` // Start Time
-	TimeEnd   time.Time  `json:"datetime_end"`   // End Time
-	Stages    Regulation `json:"stages"`         // Stage Set
-	GachiRule string     `json:"gachi_rule"`     // rule for Gatch Match
+	TimeSpan
+	Stages    Regulation `json:"stages"`     // Stage Set
+	GachiRule string     `json:"gachi_rule"` // rule for Gatch Match
 }
 
 // Festival is a rule set in Festival
 type Festival struct {
-	TimeBegin time.Time `json:"datetime_begin"`  // Start Time
-	TimeEnd   time.Time `json:"datetime_end"`    // End Time
-	TeamA     string    `json:"team_alpha_name"` // Name of Team A
-	TeamB     string    `json:"team_bravo_name"` // Name of Team B
-	Stages    []Stage   `json:"stages"`          // Stage Set
+	TimeSpan
+	TeamA  string  `json:"team_alpha_name"` // Name of Team A
+	TeamB  string  `json:"team_bravo_name"` // Name of Team B
+	Stages []Stage `json:"stages"`          // Stage Set
 }
 
 // StageInfo is all set of Stage Schedules.
@@ -74,11 +78,16 @@ func decodeJSONSchedule(data []byte) (*StageInfo, error) {
 	return i, nil
 }
 
-func (s Schedule) String() string {
+func (t TimeSpan) String() string {
 	timefmt := "01/02 15:04:05"
-	str := fmt.Sprintf("%s - %s\n",
-		s.TimeBegin.Format(timefmt), s.TimeEnd.Format(timefmt))
+	str := fmt.Sprintf("%s - %s",
+		t.TimeBegin.Format(timefmt), t.TimeEnd.Format(timefmt))
+	return str
+}
 
+func (s Schedule) String() string {
+	str := s.TimeSpan.String()
+	str += "\n"
 	str += "レギュラーマッチ\n"
 	for i, stage := range s.Stages.Regular {
 		if i == 0 {
@@ -104,10 +113,8 @@ func (s Schedule) String() string {
 }
 
 func (s Festival) String() string {
-	timefmt := "01/02 15:04:05"
-	str := fmt.Sprintf("%s - %s\n",
-		s.TimeBegin.Format(timefmt), s.TimeEnd.Format(timefmt))
-
+	str := s.TimeSpan.String()
+	str += "\n"
 	str += fmt.Sprintf("フェスマッチ [%s vs %s]\n", s.TeamA, s.TeamB)
 	for i, stage := range s.Stages {
 		if i == 0 {
