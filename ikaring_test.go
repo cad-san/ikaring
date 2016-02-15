@@ -37,3 +37,19 @@ func TestDecodeJSONErrorEmpty(t *testing.T) {
 		t.Errorf("decoded error should empty")
 	}
 }
+
+func TestGetOarthQuery(t *testing.T) {
+	query, err := getOauthQuery(splatoonOauthURL, "name", "password")
+	if err != nil {
+		t.Errorf("getOauthQuery() has error :%v", err)
+	}
+	if len(query) != 10 {
+		t.Errorf("query should have 10 entities")
+	}
+	if _, ok := query["client_id"]; !ok {
+		t.Errorf("query should have client_id")
+	}
+	if _, ok := query["state"]; !ok {
+		t.Errorf("query should have state")
+	}
+}
