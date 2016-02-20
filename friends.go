@@ -4,11 +4,13 @@ import (
 	"encoding/json"
 )
 
+// Intention is stasus of friend's recruitment for playing
 type Intention struct {
 	ID       *string
 	ImageURL *string `json:"image"`
 }
 
+// Friend has infomation in FriendList
 type Friend struct {
 	Player
 	Online    bool
@@ -16,7 +18,7 @@ type Friend struct {
 	Intention Intention
 }
 
-// PlayStatus is user
+// PlayMode indicates mode that friend plays with splatoon.
 type PlayMode string
 
 func decodeJSONFriendList(data []byte) ([]Friend, error) {
