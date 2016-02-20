@@ -32,6 +32,9 @@ func (m PlayMode) String() string {
 		"gachi":   "ガチマッチでウデだめししてるぜ！",
 		"tag":     "タッグマッチでガチってるぜ！",
 		"private": "プライベートマッチで自由に楽しんでるぜ！",
+        "fes":     "フェスマッチでお祭りさわぎ！",
+        "online":  "オンライン",
+        "offline": "オフライン",
 	}
 	return table[string(m)]
 }
