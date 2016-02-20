@@ -81,7 +81,8 @@ func decodeJSONSchedule(data []byte) (*StageInfo, error) {
 func (t TimeSpan) String() string {
 	timefmt := "01/02 15:04:05"
 	str := fmt.Sprintf("%s - %s",
-		t.TimeBegin.Format(timefmt), t.TimeEnd.Format(timefmt))
+		t.TimeBegin.Local().Format(timefmt),
+		t.TimeEnd.Local().Format(timefmt))
 	return str
 }
 
