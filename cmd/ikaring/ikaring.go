@@ -15,6 +15,7 @@ import (
 
 	"github.com/bgentry/speakeasy"
 	"github.com/jessevdk/go-flags"
+	"github.com/mattn/go-colorable"
 )
 
 type option struct {
@@ -25,6 +26,17 @@ type option struct {
 type stageCmd struct{}
 type rankCmd struct{}
 type friendCmd struct{}
+
+const (
+	Red   = "\x1b[31;1m"
+	Green = "\x1b[32;1m"
+	White = "\x1b[37;1m"
+	End   = "\x1b[0m"
+)
+
+var (
+	stdout = colorable.NewColorableStdout()
+)
 
 func getCacheFile() (string, error) {
 	me, err := user.Current()
@@ -141,6 +153,20 @@ func (c *rankCmd) Execute(args []string) error {
 			fmt.Printf("\t[%d] %3d %s (%s)\n", p.Rank, p.Score, p.Name, p.Weapon)
 		}
 	}
+
+	if len(info.Festival) > 0 {
+		fmt.Println("フェス")
+		for _, p := range info.Festival {
+			top100 := ""
+			if p.Top100 {
+				top100 = Red + "百ケツ!\t" + End
+			} else {
+				top100 = "\t"
+			}
+			fmt.Fprintf(stdout, "%s[%d] %3d %s(%s)\n", top100, p.Rank, p.Score, p.Name, p.Weapon)
+		}
+	}
+
 	return nil
 }
 

@@ -21,10 +21,17 @@ type PlayerScore struct {
 	Score int
 }
 
+// FestivalScore has player info for festival ranking
+type FestivalScore struct {
+	PlayerScore
+	Top100 bool
+}
+
 // RankingInfo has ranking for Regular Match and Gachi Match
 type RankingInfo struct {
-	Regular []PlayerScore
-	Gachi   []PlayerScore
+	Regular  []PlayerScore
+	Gachi    []PlayerScore
+	Festival []FestivalScore
 }
 
 func decodeJSONRanking(data []byte) (*RankingInfo, error) {
