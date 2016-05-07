@@ -30,6 +30,8 @@ type friendCmd struct{}
 const (
 	Red   = "\x1b[31;1m"
 	Green = "\x1b[32;1m"
+	Blue  = "\x1b[34;1m"
+	Pink  = "\x1b[35;1m"
 	White = "\x1b[37;1m"
 	End   = "\x1b[0m"
 )
@@ -141,21 +143,21 @@ func (c *rankCmd) Execute(args []string) error {
 	}
 
 	if len(info.Regular) > 0 {
-		fmt.Println("レギュラーマッチ")
+		fmt.Println(Green + "レギュラーマッチ" + End)
 		for _, p := range info.Regular {
 			fmt.Printf("\t[%d] %3d %s (%s)\n", p.Rank, p.Score, p.Name, p.Weapon)
 		}
 	}
 
 	if len(info.Gachi) > 0 {
-		fmt.Println("ガチマッチ")
+		fmt.Println(Pink + "ガチマッチ" + End)
 		for _, p := range info.Gachi {
 			fmt.Printf("\t[%d] %3d %s (%s)\n", p.Rank, p.Score, p.Name, p.Weapon)
 		}
 	}
 
 	if len(info.Festival) > 0 {
-		fmt.Println("フェス")
+		fmt.Println(Blue + "フェス" + End)
 		for _, p := range info.Festival {
 			top100 := ""
 			if p.Top100 {
