@@ -117,8 +117,8 @@ func (c *IkaClient) Authorized() bool {
 
 // GetStageInfo get Stage Info from SplatNet.
 // this API send GET request and parse stage schedules from JSON.
-func (c *IkaClient) GetStageInfo() (*StageInfo, error) {
-	req, err := c.newRequest(nil, "GET", scheduleAPI, nil)
+func (c *IkaClient) GetStageInfo(ctx context.Context) (*StageInfo, error) {
+	req, err := c.newRequest(ctx, "GET", scheduleAPI, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -144,8 +144,8 @@ func (c *IkaClient) GetStageInfo() (*StageInfo, error) {
 
 // GetRanking get Ranking of Friends from SplatNet.
 // this API send GET request and parse ranking from JSON.
-func (c *IkaClient) GetRanking() (*RankingInfo, error) {
-	req, err := c.newRequest(nil, "GET", rankingAPI, nil)
+func (c *IkaClient) GetRanking(ctx context.Context) (*RankingInfo, error) {
+	req, err := c.newRequest(ctx, "GET", rankingAPI, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -171,8 +171,8 @@ func (c *IkaClient) GetRanking() (*RankingInfo, error) {
 
 // GetFriendList get Friend List form SplatNet.
 // this API send GET request and parse friend online status from JSON
-func (c *IkaClient) GetFriendList() ([]Friend, error) {
-	req, err := c.newRequest(nil, "GET", friendListAPI, nil)
+func (c *IkaClient) GetFriendList(ctx context.Context) ([]Friend, error) {
+	req, err := c.newRequest(ctx, "GET", friendListAPI, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -195,8 +195,8 @@ func (c *IkaClient) GetFriendList() ([]Friend, error) {
 
 // GetWeaponMap get Weapon Set from SplatNet.
 // this API send GET request and parse weapon map by scraping HTML
-func (c *IkaClient) GetWeaponMap() (map[string]string, error) {
-	req, err := c.newRequest(nil, "GET", "", nil)
+func (c *IkaClient) GetWeaponMap(ctx context.Context) (map[string]string, error) {
+	req, err := c.newRequest(ctx, "GET", "", nil)
 	if err != nil {
 		return nil, err
 	}

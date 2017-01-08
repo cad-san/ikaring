@@ -108,7 +108,7 @@ func (c *stageCmd) Execute(args []string) error {
 		return err
 	}
 
-	info, err := client.GetStageInfo()
+	info, err := client.GetStageInfo(nil)
 	if err != nil {
 		return err
 	}
@@ -137,7 +137,7 @@ func (c *rankCmd) Execute(args []string) error {
 		return err
 	}
 
-	info, err := client.GetRanking()
+	info, err := client.GetRanking(nil)
 	if err != nil {
 		return err
 	}
@@ -182,7 +182,7 @@ func (c *friendCmd) Execute(args []string) error {
 		return err
 	}
 
-	list, err := client.GetFriendList()
+	list, err := client.GetFriendList(nil)
 	if err != nil {
 		return err
 	}
