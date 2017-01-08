@@ -4,20 +4,24 @@ Package ikaring provides http client Api for SplatNet; web service for Splatoon 
 package ikaring
 
 import (
-	"errors"
 	"io/ioutil"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
 
+	"log"
+
 	"github.com/PuerkitoBio/goquery"
 	"github.com/bitly/go-simplejson"
+	"github.com/pkg/errors"
 )
 
 // IkaClient is a http client for SplatNet.
 // it includes http.Client.
 type IkaClient struct {
-	hc *http.Client
+	hc      *http.Client
+	BaseURL *url.URL    // Splatnet Domain URL
+	Logger  *log.Logger // Logger
 }
 
 const (
@@ -35,19 +39,41 @@ const (
 // CreateClient generates ikaClient, http client object for Splatnet.
 // It provides a http client with empty cookiejar.
 func CreateClient() (*IkaClient, error) {
+	return newClient(splatoonDomainURL, nil)
+}
+
+// newCleint generates ikaClient, http client object for Splatnet.
+// this is inner implement for CreateClient() and used for tests.
+func newClient(urlStr string, logger *log.Logger) (*IkaClient, error) {
+	// cookie
 	jar, err := cookiejar.New(nil)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to create cookie jar")
 	}
+	// http client
 	hc := &http.Client{Jar: jar}
-	client := &IkaClient{hc: hc}
+	client := &IkaClient{
+		hc: hc,
+	}
+	// base URL
+	client.BaseURL, err = url.ParseRequestURI(urlStr)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to parse url: %s", urlStr)
+	}
+	// logger
+	client.Logger = logger
+	if logger == nil {
+		var discardLogger = log.New(ioutil.Discard, "", log.LstdFlags)
+		client.Logger = discardLogger
+	} else {
+		client.Logger = logger
+	}
 	return client, nil
 }
 
 // SetSession sets session cookie to receiver IkaClient.
 func (c *IkaClient) SetSession(session string) {
-	uri, _ := url.Parse(splatoonDomainURL)
-	c.hc.Jar.SetCookies(uri, []*http.Cookie{
+	c.hc.Jar.SetCookies(c.BaseURL, []*http.Cookie{
 		&http.Cookie{
 			Secure:   true,
 			HttpOnly: true,
@@ -82,7 +108,7 @@ func (c *IkaClient) Login(name string, password string) (string, error) {
 // Authorized judges wheather the client authorized
 // It checks cookies for session that used for authorization
 func (c *IkaClient) Authorized() bool {
-	uri, _ := url.Parse(splatoonDomainURL)
+	uri := c.BaseURL
 	session := getSessionFromCookie(c.hc.Jar.Cookies(uri))
 	return len(session) != 0
 }
