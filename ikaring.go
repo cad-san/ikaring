@@ -28,14 +28,14 @@ type IkaClient struct {
 
 const (
 	splatoonCookieName = "_wag_session"
-	splatoonDomainURL  = "https://splatoon.nintendo.net/"
 
-	splatoonOauthURL = "https://splatoon.nintendo.net/users/auth/nintendo"
-	nintendoOauthURL = "https://id.nintendo.net/oauth/authorize"
+	splatoonDomainURL = "https://splatoon.nintendo.net/"
+	splatoonOauthURL  = "https://splatoon.nintendo.net/users/auth/nintendo"
+	nintendoOauthURL  = "https://id.nintendo.net/oauth/authorize"
 
-	splatoonScheduleAPI   = "https://splatoon.nintendo.net/schedule.json"
-	splatoonRankingAPI    = "https://splatoon.nintendo.net/ranking.json"
-	splatoonFriendListAPI = "https://splatoon.nintendo.net/friend_list/index.json"
+	scheduleAPI   = "schedule.json"
+	rankingAPI    = "ranking.json"
+	friendListAPI = "friend_list/index.json"
 )
 
 // CreateClient generates ikaClient, http client object for Splatnet.
@@ -118,8 +118,12 @@ func (c *IkaClient) Authorized() bool {
 // GetStageInfo get Stage Info from SplatNet.
 // this API send GET request and parse stage schedules from JSON.
 func (c *IkaClient) GetStageInfo() (*StageInfo, error) {
+	req, err := c.newRequest(nil, "GET", scheduleAPI, nil)
+	if err != nil {
+		return nil, err
+	}
 
-	resp, err := c.hc.Get(splatoonScheduleAPI)
+	resp, err := c.hc.Do(req)
 
 	if err != nil {
 		return nil, err
@@ -141,7 +145,12 @@ func (c *IkaClient) GetStageInfo() (*StageInfo, error) {
 // GetRanking get Ranking of Friends from SplatNet.
 // this API send GET request and parse ranking from JSON.
 func (c *IkaClient) GetRanking() (*RankingInfo, error) {
-	resp, err := c.hc.Get(splatoonRankingAPI)
+	req, err := c.newRequest(nil, "GET", rankingAPI, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := c.hc.Do(req)
 
 	if err != nil {
 		return nil, err
@@ -163,7 +172,12 @@ func (c *IkaClient) GetRanking() (*RankingInfo, error) {
 // GetFriendList get Friend List form SplatNet.
 // this API send GET request and parse friend online status from JSON
 func (c *IkaClient) GetFriendList() ([]Friend, error) {
-	resp, err := c.hc.Get(splatoonFriendListAPI)
+	req, err := c.newRequest(nil, "GET", friendListAPI, nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := c.hc.Do(req)
+
 	if err != nil {
 		return nil, err
 	}
@@ -182,7 +196,11 @@ func (c *IkaClient) GetFriendList() ([]Friend, error) {
 // GetWeaponMap get Weapon Set from SplatNet.
 // this API send GET request and parse weapon map by scraping HTML
 func (c *IkaClient) GetWeaponMap() (map[string]string, error) {
-	resp, err := c.hc.Get(splatoonDomainURL)
+	req, err := c.newRequest(nil, "GET", "", nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := c.hc.Do(req)
 	if err != nil {
 		return nil, err
 	}
