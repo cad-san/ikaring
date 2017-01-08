@@ -4,12 +4,14 @@ Package ikaring provides http client Api for SplatNet; web service for Splatoon 
 package ikaring
 
 import (
+	"context"
+	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
-
-	"log"
+	"path"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/bitly/go-simplejson"
@@ -198,6 +200,22 @@ func (c *IkaClient) GetWeaponMap() (map[string]string, error) {
 		}
 	})
 	return weapons, nil
+}
+
+func (c *IkaClient) newRequest(ctx context.Context, method, spath string, body io.Reader) (*http.Request, error) {
+	u := *c.BaseURL
+	if len(spath) > 0 {
+		u.Path = path.Join(c.BaseURL.Path, spath)
+	}
+
+	req, err := http.NewRequest(method, u.String(), body)
+	if err != nil {
+		return nil, err
+	}
+	if ctx != nil {
+		req.WithContext(ctx)
+	}
+	return req, err
 }
 
 func checkJSONError(data []byte) error {
