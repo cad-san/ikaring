@@ -17,7 +17,7 @@ import (
 // IkaClient is a http client for SplatNet.
 // it includes http.Client.
 type IkaClient struct {
-	http.Client
+	hc *http.Client
 }
 
 const (
@@ -39,15 +39,15 @@ func CreateClient() (*IkaClient, error) {
 	if err != nil {
 		return nil, err
 	}
-	client := &IkaClient{}
-	client.Jar = jar
+	hc := &http.Client{Jar: jar}
+	client := &IkaClient{hc: hc}
 	return client, nil
 }
 
 // SetSession sets session cookie to receiver IkaClient.
 func (c *IkaClient) SetSession(session string) {
 	uri, _ := url.Parse(splatoonDomainURL)
-	c.Jar.SetCookies(uri, []*http.Cookie{
+	c.hc.Jar.SetCookies(uri, []*http.Cookie{
 		&http.Cookie{
 			Secure:   true,
 			HttpOnly: true,
@@ -64,7 +64,7 @@ func (c *IkaClient) Login(name string, password string) (string, error) {
 		return "", err
 	}
 
-	resp, err := c.PostForm(nintendoOauthURL, query)
+	resp, err := c.hc.PostForm(nintendoOauthURL, query)
 	if err != nil {
 		return "", err
 	}
@@ -83,7 +83,7 @@ func (c *IkaClient) Login(name string, password string) (string, error) {
 // It checks cookies for session that used for authorization
 func (c *IkaClient) Authorized() bool {
 	uri, _ := url.Parse(splatoonDomainURL)
-	session := getSessionFromCookie(c.Jar.Cookies(uri))
+	session := getSessionFromCookie(c.hc.Jar.Cookies(uri))
 	return len(session) != 0
 }
 
@@ -91,7 +91,7 @@ func (c *IkaClient) Authorized() bool {
 // this API send GET request and parse stage schedules from JSON.
 func (c *IkaClient) GetStageInfo() (*StageInfo, error) {
 
-	resp, err := c.Get(splatoonScheduleAPI)
+	resp, err := c.hc.Get(splatoonScheduleAPI)
 
 	if err != nil {
 		return nil, err
@@ -113,7 +113,7 @@ func (c *IkaClient) GetStageInfo() (*StageInfo, error) {
 // GetRanking get Ranking of Friends from SplatNet.
 // this API send GET request and parse ranking from JSON.
 func (c *IkaClient) GetRanking() (*RankingInfo, error) {
-	resp, err := c.Get(splatoonRankingAPI)
+	resp, err := c.hc.Get(splatoonRankingAPI)
 
 	if err != nil {
 		return nil, err
@@ -135,7 +135,7 @@ func (c *IkaClient) GetRanking() (*RankingInfo, error) {
 // GetFriendList get Friend List form SplatNet.
 // this API send GET request and parse friend online status from JSON
 func (c *IkaClient) GetFriendList() ([]Friend, error) {
-	resp, err := c.Get(splatoonFriendListAPI)
+	resp, err := c.hc.Get(splatoonFriendListAPI)
 	if err != nil {
 		return nil, err
 	}
@@ -154,7 +154,7 @@ func (c *IkaClient) GetFriendList() ([]Friend, error) {
 // GetWeaponMap get Weapon Set from SplatNet.
 // this API send GET request and parse weapon map by scraping HTML
 func (c *IkaClient) GetWeaponMap() (map[string]string, error) {
-	resp, err := c.Get(splatoonDomainURL)
+	resp, err := c.hc.Get(splatoonDomainURL)
 	if err != nil {
 		return nil, err
 	}
