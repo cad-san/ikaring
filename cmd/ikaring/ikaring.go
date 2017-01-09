@@ -1,6 +1,9 @@
 package main
 
 import (
+	"context"
+	"time"
+
 	"github.com/cad-san/ikaring"
 
 	"bufio"
@@ -9,9 +12,11 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"os/signal"
 	"os/user"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/bgentry/speakeasy"
 	"github.com/jessevdk/go-flags"
@@ -35,6 +40,8 @@ const (
 	White = "\x1b[37;1m"
 	End   = "\x1b[0m"
 )
+
+const timeoutTime = time.Second * 5
 
 var (
 	stdout = colorable.NewColorableStdout()
@@ -73,7 +80,7 @@ func getAccount(r io.Reader) (string, string, error) {
 	return username, password, err
 }
 
-func login(client *ikaring.IkaClient) error {
+func login(ctx context.Context, client *ikaring.IkaClient) error {
 	path, err := getCacheFile()
 	if err != nil {
 		return err
@@ -86,7 +93,7 @@ func login(client *ikaring.IkaClient) error {
 	}
 
 	username, password, err := getAccount(os.Stdin)
-	session, err = client.Login(nil, username, password)
+	session, err = client.Login(ctx, username, password)
 	if err != nil {
 		return err
 	}
@@ -104,11 +111,18 @@ func (c *stageCmd) Execute(args []string) error {
 		return err
 	}
 
-	if err = login(client); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), timeoutTime)
+	handle, doneCh := newSignalHandler(cancel)
+
+	wg := &sync.WaitGroup{}
+	wg.Add(1)
+	go handle(wg)
+
+	if err = login(ctx, client); err != nil {
 		return err
 	}
 
-	info, err := client.GetStageInfo(nil)
+	info, err := client.GetStageInfo(ctx)
 	if err != nil {
 		return err
 	}
@@ -124,6 +138,8 @@ func (c *stageCmd) Execute(args []string) error {
 			fmt.Printf("%v\n", s)
 		}
 	}
+	doneCh <- struct{}{}
+	wg.Wait()
 	return nil
 }
 
@@ -133,11 +149,18 @@ func (c *rankCmd) Execute(args []string) error {
 		return err
 	}
 
-	if err = login(client); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), timeoutTime)
+	handle, doneCh := newSignalHandler(cancel)
+
+	wg := &sync.WaitGroup{}
+	wg.Add(1)
+	go handle(wg)
+
+	if err = login(ctx, client); err != nil {
 		return err
 	}
 
-	info, err := client.GetRanking(nil)
+	info, err := client.GetRanking(ctx)
 	if err != nil {
 		return err
 	}
@@ -169,6 +192,8 @@ func (c *rankCmd) Execute(args []string) error {
 		}
 	}
 
+	doneCh <- struct{}{}
+	wg.Wait()
 	return nil
 }
 
@@ -178,11 +203,18 @@ func (c *friendCmd) Execute(args []string) error {
 		return err
 	}
 
-	if err = login(client); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), timeoutTime)
+	handle, doneCh := newSignalHandler(cancel)
+
+	wg := &sync.WaitGroup{}
+	wg.Add(1)
+	go handle(wg)
+
+	if err = login(ctx, client); err != nil {
 		return err
 	}
 
-	list, err := client.GetFriendList(nil)
+	list, err := client.GetFriendList(ctx)
 	if err != nil {
 		return err
 	}
@@ -195,7 +227,32 @@ func (c *friendCmd) Execute(args []string) error {
 		fmt.Printf("%s\n", f.Name)
 		fmt.Printf("\t%s\n", f.Mode)
 	}
+	doneCh <- struct{}{}
+	wg.Wait()
 	return nil
+}
+
+func newSignalHandler(cancel context.CancelFunc) (func(*sync.WaitGroup), chan struct{}) {
+	doneCh := make(chan struct{}, 1)
+	handler := func(wg *sync.WaitGroup) {
+		defer wg.Done()
+
+		// catch Ctrl+C signal
+		sigCh := make(chan os.Signal, 1)
+		signal.Notify(sigCh, os.Interrupt)
+
+		for {
+			select {
+			case <-sigCh:
+				cancel()
+				fmt.Printf("signal catch\n")
+				return
+			case <-doneCh:
+				return
+			}
+		}
+	}
+	return handler, doneCh
 }
 
 func main() {
