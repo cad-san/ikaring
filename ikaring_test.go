@@ -1,6 +1,7 @@
 package ikaring
 
 import (
+	"net/http"
 	"testing"
 )
 
@@ -39,7 +40,14 @@ func TestDecodeJSONErrorEmpty(t *testing.T) {
 }
 
 func TestGetOarthQuery(t *testing.T) {
-	query, err := getOauthQuery(splatoonOauthURL, "name", "password")
+	splatoonOauthURL := "https://splatoon.nintendo.net/users/auth/nintendo"
+
+	resp, err := http.DefaultClient.Get(splatoonOauthURL)
+	if err != nil {
+		t.Errorf("GET request is failed. URL : %s", splatoonOauthURL)
+	}
+
+	query, err := getOauthQuery(resp, "name", "password")
 	if err != nil {
 		t.Errorf("getOauthQuery() has error :%v", err)
 	}

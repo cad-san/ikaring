@@ -30,9 +30,9 @@ const (
 	splatoonCookieName = "_wag_session"
 
 	splatoonDomainURL = "https://splatoon.nintendo.net/"
-	splatoonOauthURL  = "https://splatoon.nintendo.net/users/auth/nintendo"
 	nintendoOauthURL  = "https://id.nintendo.net/oauth/authorize"
 
+	loginPageURL  = "users/auth/nintendo"
 	scheduleAPI   = "schedule.json"
 	rankingAPI    = "ranking.json"
 	friendListAPI = "friend_list/index.json"
@@ -87,12 +87,20 @@ func (c *IkaClient) SetSession(session string) {
 // Login sends http request to authorize Nintendo Network.
 // it require NNID and password and return session cookie.
 func (c *IkaClient) Login(name string, password string) (string, error) {
-	query, err := getOauthQuery(splatoonOauthURL, name, password)
+	req, err := c.newRequest(nil, "GET", loginPageURL, nil)
+	if err != nil {
+		return "", err
+	}
+	resp, err := c.hc.Do(req)
+	if err != nil {
+		return "", err
+	}
+	query, err := getOauthQuery(resp, name, password)
 	if err != nil {
 		return "", err
 	}
 
-	resp, err := c.hc.PostForm(nintendoOauthURL, query)
+	resp, err = c.hc.PostForm(nintendoOauthURL, query)
 	if err != nil {
 		return "", err
 	}

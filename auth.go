@@ -7,8 +7,8 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-func getOauthQuery(oarthURL string, id string, password string) (url.Values, error) {
-	doc, err := goquery.NewDocument(oarthURL)
+func getOauthQuery(resp *http.Response, id string, password string) (url.Values, error) {
+	doc, err := goquery.NewDocumentFromResponse(resp)
 
 	if err != nil {
 		return nil, err
