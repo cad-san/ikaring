@@ -1,12 +1,10 @@
 package main
 
 import (
-	"context"
-	"time"
-
 	"github.com/cad-san/ikaring"
 
 	"bufio"
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -17,6 +15,8 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"syscall"
+	"time"
 
 	"github.com/bgentry/speakeasy"
 	"github.com/jessevdk/go-flags"
@@ -239,7 +239,10 @@ func newSignalHandler(cancel context.CancelFunc) (func(*sync.WaitGroup), chan st
 
 		// catch Ctrl+C signal
 		sigCh := make(chan os.Signal, 1)
-		signal.Notify(sigCh, os.Interrupt)
+		signal.Notify(sigCh,
+			syscall.SIGTERM,
+			os.Interrupt)
+		defer signal.Stop(sigCh)
 
 		for {
 			select {
