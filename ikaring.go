@@ -12,6 +12,7 @@ import (
 	"net/http/cookiejar"
 	"net/url"
 	"path"
+	"strings"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/bitly/go-simplejson"
@@ -23,6 +24,7 @@ import (
 type IkaClient struct {
 	hc      *http.Client
 	BaseURL *url.URL    // Splatnet Domain URL
+	AuthURL *url.URL    // Nintendo Network OAUTH URL
 	Logger  *log.Logger // Logger
 }
 
@@ -41,12 +43,12 @@ const (
 // CreateClient generates ikaClient, http client object for Splatnet.
 // It provides a http client with empty cookiejar.
 func CreateClient() (*IkaClient, error) {
-	return newClient(splatoonDomainURL, nil)
+	return newClient(splatoonDomainURL, nintendoOauthURL, nil)
 }
 
 // newCleint generates ikaClient, http client object for Splatnet.
 // this is inner implement for CreateClient() and used for tests.
-func newClient(urlStr string, logger *log.Logger) (*IkaClient, error) {
+func newClient(baseURL, authURL string, logger *log.Logger) (*IkaClient, error) {
 	// cookie
 	jar, err := cookiejar.New(nil)
 	if err != nil {
@@ -58,9 +60,14 @@ func newClient(urlStr string, logger *log.Logger) (*IkaClient, error) {
 		hc: hc,
 	}
 	// base URL
-	client.BaseURL, err = url.ParseRequestURI(urlStr)
+	client.BaseURL, err = url.ParseRequestURI(baseURL)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to parse url: %s", urlStr)
+		return nil, errors.Wrapf(err, "failed to parse url: %s", baseURL)
+	}
+	// auth URL
+	client.AuthURL, err = url.ParseRequestURI(authURL)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to parse url: %s", authURL)
 	}
 	// logger
 	client.Logger = logger
@@ -100,7 +107,11 @@ func (c *IkaClient) Login(name string, password string) (string, error) {
 		return "", err
 	}
 
-	resp, err = c.hc.PostForm(nintendoOauthURL, query)
+	req, err = c.newAuthRequest(nil, strings.NewReader(query.Encode()))
+	if err != nil {
+		return "", err
+	}
+	resp, err = c.hc.Do(req)
 	if err != nil {
 		return "", err
 	}
@@ -239,9 +250,22 @@ func (c *IkaClient) newRequest(ctx context.Context, method, spath string, body i
 		return nil, err
 	}
 	if ctx != nil {
-		req.WithContext(ctx)
+		req = req.WithContext(ctx)
 	}
-	return req, err
+	return req, nil
+}
+
+func (c *IkaClient) newAuthRequest(ctx context.Context, body io.Reader) (*http.Request, error) {
+	req, err := http.NewRequest("POST", c.AuthURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	if ctx != nil {
+		req = req.WithContext(ctx)
+	}
+	return req, nil
 }
 
 func checkJSONError(data []byte) error {
