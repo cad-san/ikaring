@@ -102,7 +102,7 @@ func (c *IkaClient) Login(name string, password string) (string, error) {
 		return "", errors.New(resp.Status)
 	}
 
-	session := getSessionFromCookie(resp.Cookies())
+	session := getSessionFromCookie(splatoonCookieName, resp.Cookies())
 
 	return session, nil
 }
@@ -111,7 +111,7 @@ func (c *IkaClient) Login(name string, password string) (string, error) {
 // It checks cookies for session that used for authorization
 func (c *IkaClient) Authorized() bool {
 	uri := c.BaseURL
-	session := getSessionFromCookie(c.hc.Jar.Cookies(uri))
+	session := getSessionFromCookie(splatoonCookieName, c.hc.Jar.Cookies(uri))
 	return len(session) != 0
 }
 
