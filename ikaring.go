@@ -93,8 +93,8 @@ func (c *IkaClient) SetSession(session string) {
 
 // Login sends http request to authorize Nintendo Network.
 // it require NNID and password and return session cookie.
-func (c *IkaClient) Login(name string, password string) (string, error) {
-	req, err := c.newRequest(nil, "GET", loginPageURL, nil)
+func (c *IkaClient) Login(ctx context.Context, name string, password string) (string, error) {
+	req, err := c.newRequest(ctx, "GET", loginPageURL, nil)
 	if err != nil {
 		return "", err
 	}
@@ -107,7 +107,7 @@ func (c *IkaClient) Login(name string, password string) (string, error) {
 		return "", err
 	}
 
-	req, err = c.newAuthRequest(nil, strings.NewReader(query.Encode()))
+	req, err = c.newAuthRequest(ctx, strings.NewReader(query.Encode()))
 	if err != nil {
 		return "", err
 	}

@@ -86,7 +86,7 @@ func login(client *ikaring.IkaClient) error {
 	}
 
 	username, password, err := getAccount(os.Stdin)
-	session, err = client.Login(username, password)
+	session, err = client.Login(nil, username, password)
 	if err != nil {
 		return err
 	}
