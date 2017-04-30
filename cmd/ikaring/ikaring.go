@@ -41,6 +41,7 @@ const (
 	End   = "\x1b[0m"
 )
 
+const loginTimeout = time.Second * 30
 const timeoutTime = time.Second * 5
 
 var (
@@ -70,17 +71,17 @@ func writeSession(path string, session string) error {
 func getAccount(r io.Reader) (string, string, error) {
 	scanner := bufio.NewScanner(r)
 	for {
-		fmt.Print("User: ")
+		fmt.Print(Red + "User: " + End)
 		if scanner.Scan() {
 			break
 		}
 	}
 	username := scanner.Text()
-	password, err := speakeasy.Ask("Password: ")
+	password, err := speakeasy.Ask(Red + "Password: " + End)
 	return username, password, err
 }
 
-func login(ctx context.Context, client *ikaring.IkaClient) error {
+func login(client *ikaring.IkaClient) error {
 	path, err := getCacheFile()
 	if err != nil {
 		return err
@@ -93,6 +94,14 @@ func login(ctx context.Context, client *ikaring.IkaClient) error {
 	}
 
 	username, password, err := getAccount(os.Stdin)
+
+	ctx, cancel := context.WithTimeout(context.Background(), loginTimeout)
+	handle, doneCh := newSignalHandler(cancel)
+
+	wg := &sync.WaitGroup{}
+	wg.Add(1)
+	go handle(wg)
+
 	session, err = client.Login(ctx, username, password)
 	if err != nil {
 		return err
@@ -101,6 +110,10 @@ func login(ctx context.Context, client *ikaring.IkaClient) error {
 	if len(session) <= 0 {
 		return errors.New("login failure")
 	}
+
+	doneCh <- struct{}{}
+	wg.Wait()
+
 	writeSession(path, session)
 	return nil
 }
@@ -111,16 +124,16 @@ func (c *stageCmd) Execute(args []string) error {
 		return err
 	}
 
+	if err = login(client); err != nil {
+		return err
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), timeoutTime)
 	handle, doneCh := newSignalHandler(cancel)
 
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
 	go handle(wg)
-
-	if err = login(ctx, client); err != nil {
-		return err
-	}
 
 	info, err := client.GetStageInfo(ctx)
 	if err != nil {
@@ -149,16 +162,16 @@ func (c *rankCmd) Execute(args []string) error {
 		return err
 	}
 
+	if err = login(client); err != nil {
+		return err
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), timeoutTime)
 	handle, doneCh := newSignalHandler(cancel)
 
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
 	go handle(wg)
-
-	if err = login(ctx, client); err != nil {
-		return err
-	}
 
 	info, err := client.GetRanking(ctx)
 	if err != nil {
@@ -203,16 +216,16 @@ func (c *friendCmd) Execute(args []string) error {
 		return err
 	}
 
+	if err = login(client); err != nil {
+		return err
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), timeoutTime)
 	handle, doneCh := newSignalHandler(cancel)
 
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
 	go handle(wg)
-
-	if err = login(ctx, client); err != nil {
-		return err
-	}
 
 	list, err := client.GetFriendList(ctx)
 	if err != nil {
