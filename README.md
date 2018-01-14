@@ -1,5 +1,8 @@
 # ikaring
+
 this is a cli client for SplatNet with golang
+
+**the official service "SplatNet" was closed and this application no longer available.**
 
 ## Usage 
 
